@@ -1,3 +1,6 @@
 <Solution>
   <Project Path="PathPeer.API/PathPeer.API.csproj" />
+  <Project Path="PathPeer.Application/PathPeer.Application.csproj" />
+  <Project Path="PathPeer.Domain/PathPeer.Domain.csproj" />
+  <Project Path="PathPeer.Infrastructure/PathPeer.Infrastructure.csproj" />
 </Solution>
