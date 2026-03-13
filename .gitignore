@@ -3,8 +3,19 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+# docker
+docker-compose.override.yml
+
 # dotenv files
 .env
+.env.local
+.env.development
+appsettings.Development.json
+appsettings.Local.json
+
+# OS
+.DS_Store
+Thumbs.db
 
 # User-specific files
 *.rsuser
