@@ -8,7 +8,18 @@
 
   <ItemGroup>
     <!-- <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" /> -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../PathPeer.Application/PathPeer.Application.csproj" />
+    <ProjectReference Include="../PathPeer.Infrastructure/PathPeer.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
