@@ -1,13 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>bbfe1fd4-39b9-4596-9f6a-f954c9cd4c1b</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" /> -->
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -20,6 +22,10 @@
   <ItemGroup>
     <ProjectReference Include="../PathPeer.Application/PathPeer.Application.csproj" />
     <ProjectReference Include="../PathPeer.Infrastructure/PathPeer.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers/" />
   </ItemGroup>
 
 </Project>

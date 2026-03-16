@@ -1,0 +1,27 @@
+using System;
+using PathPeer.Domain.Enums;
+
+namespace PathPeer.Domain.Entities;
+
+public class User
+{
+    public int Id { get; set; }
+    public required string Email { get; set; }
+    public required string PasswordHash { get; set; }
+    public required string Username { get; set; }
+    public string? ProfilePictureUrl { get; set; }
+    public string? Bio { get; set; }
+
+    //User roles
+    public UserRole Role { get; set; } = UserRole.User;
+
+    // Status profesor
+    public TeacherStatus TeacherStatus { get; set; } = TeacherStatus.NotRequested;
+    public string? TeacherBio { get; set; }
+    public DateTime? TeacherApprovedAt { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigație
+    public ICollection<Course> Courses { get; set; } = new List<Course>();
+}
