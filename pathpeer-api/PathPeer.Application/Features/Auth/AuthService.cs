@@ -87,4 +87,19 @@ public class AuthService : IAuthService
         };
     }
 
+    public async Task<UserDto> GetProfileAsync(int userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+            throw new Exception("Utilizatorul nu a fost găsit");
+
+        return new UserDto
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Email = user.Email,
+            Role = user.Role.ToString(),
+            TeacherStatus = user.TeacherStatus.ToString()
+        };
+    }
 }
