@@ -4,7 +4,13 @@ using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using PathPeer.Application.Common;
+using PathPeer.Application.Features.Auth;
+using PathPeer.Application.Interfaces.Repositories;
+using PathPeer.Application.Interfaces.Services;
 using PathPeer.Infrastructure.Persistence;
+using PathPeer.Infrastructure.Persistence.Repositories;
+using PathPeer.Infrastructure.Services;
 using Serilog;
 
 //Setup Serilog
@@ -31,6 +37,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // JWT
 var jwtSecret = builder.Configuration["Jwt:Secret"] ??
     throw new InvalidOperationException("JWT Secret lipsește din appsettings.json");
+
+builder.Services.Configure<JwtSettings>(
+    builder.Configuration.GetSection("Jwt"));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -61,6 +70,14 @@ builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration["Redis:ConnectionString"];
 });
+
+// Repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// Services
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
