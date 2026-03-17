@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PathPeer.Application.Common;
 using PathPeer.Application.Features.Auth;
+using PathPeer.Application.Features.Courses;
 using PathPeer.Application.Interfaces.Repositories;
 using PathPeer.Application.Interfaces.Services;
 using PathPeer.Infrastructure.Persistence;
@@ -78,6 +79,10 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Course
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<ICourseService, CourseService>();
 
 var app = builder.Build();
 

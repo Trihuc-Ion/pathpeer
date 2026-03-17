@@ -12,7 +12,8 @@
 
   <ItemGroup>
     <Folder Include="Common/Settings/" />
-    <Folder Include="Interfaces/Repositories/" />
+    <Folder Include="Features/Courses/" />
+    <Folder Include="Features/Courses/DTOs/" />
   </ItemGroup>
 
   <ItemGroup>
