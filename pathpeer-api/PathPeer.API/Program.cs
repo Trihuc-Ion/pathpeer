@@ -56,6 +56,12 @@ builder.Services.AddHangfire(config =>
     }));
 builder.Services.AddHangfireServer();
 
+// Redis Cache
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration["Redis:ConnectionString"];
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
