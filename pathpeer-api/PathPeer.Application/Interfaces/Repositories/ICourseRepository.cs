@@ -7,4 +7,5 @@ public interface ICourseRepository
 {
     Task<Course> CreateCourseAsync(Course course);
     Task<List<Course>> GetCoursesAsync();
+    Task<Course?> GetCourseByIdAsync(int id);
 }

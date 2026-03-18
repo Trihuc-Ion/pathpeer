@@ -33,5 +33,12 @@ public class CoursesController : ControllerBase
         var result = await _courseService.GetCoursesAsync();
         return Ok(result);
     }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetCourse(int id)
+    {
+        var result = await _courseService.GetCourseByIdAsync(id);
+        return Ok(result);
+    }
 }
 }

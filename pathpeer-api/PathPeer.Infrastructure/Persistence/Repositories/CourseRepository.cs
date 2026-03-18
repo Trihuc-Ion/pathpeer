@@ -26,6 +26,11 @@ public class CourseRepository : ICourseRepository
         return course;
     }
 
+    public async Task<Course?> GetCourseByIdAsync(int id) =>
+    await _db.Courses
+        .Include(c => c.Creator)
+        .FirstOrDefaultAsync(c => c.Id == id);
+
     public async Task<List<Course>> GetCoursesAsync()
     {
         return await _db.Courses

@@ -59,5 +59,5 @@ export interface Course {
     createdAt: string;
     updatedAt: string | null;
     creatorId: number;
-    creator?: User;
+    creatorUsername: string;
 }

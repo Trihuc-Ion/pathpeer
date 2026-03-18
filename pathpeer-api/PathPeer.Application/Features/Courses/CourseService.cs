@@ -50,6 +50,32 @@ public class CourseService : ICourseService
         };
     }
 
+    public async Task<CourseDto> GetCourseByIdAsync(int id)
+    {
+        var course = await _courseRepository.GetCourseByIdAsync(id);
+    
+        if (course == null)
+            throw new Exception("Cursul nu a fost găsit");
+            
+        return new CourseDto
+        {
+            Id = course.Id,
+            Title = course.Title,
+            Description = course.Description,
+            Category = course.Category,
+            Price = course.Price,
+            Language = course.Language,
+            Level = course.Level,
+            Status = course.Status.ToString(),
+            Version = course.Version,
+            VotesUp = course.VotesUp,
+            VotesDown = course.VotesDown,
+            CreatedAt = course.CreatedAt,
+            CreatorId = course.CreatorId,
+            CreatorUsername = course.Creator.Username
+        };
+    }
+
     public async Task<List<CourseDto>> GetCoursesAsync()
     {
         var courses = await _courseRepository.GetCoursesAsync();
