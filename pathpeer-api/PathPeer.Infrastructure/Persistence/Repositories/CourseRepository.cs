@@ -27,9 +27,9 @@ public class CourseRepository : ICourseRepository
     }
 
     public async Task<Course?> GetCourseByIdAsync(int id) =>
-    await _db.Courses
-        .Include(c => c.Creator)
-        .FirstOrDefaultAsync(c => c.Id == id);
+        await _db.Courses
+            .Include(c => c.Creator)
+            .FirstOrDefaultAsync(c => c.Id == id);
 
     public async Task<List<Course>> GetCoursesAsync()
     {

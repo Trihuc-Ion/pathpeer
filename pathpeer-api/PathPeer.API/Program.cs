@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -25,7 +26,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
 // Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 //Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -93,6 +99,10 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Course
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<ISectionRepository, SectionRepository>();
+builder.Services.AddScoped<ILessonRepository, LessonRepository>();
+builder.Services.AddScoped<ILessonBlockRepository, LessonBlockRepository>();
+
 builder.Services.AddScoped<ICourseService, CourseService>();
 
 var app = builder.Build();

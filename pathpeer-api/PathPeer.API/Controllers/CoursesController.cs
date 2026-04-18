@@ -27,6 +27,37 @@ public class CoursesController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("{courseId}/sections")]
+    public async Task<IActionResult> AddSection(int courseId, CreateSectionDto dto)
+    {
+        await _courseService.AddSection(courseId, dto);
+        return Ok();
+    }
+
+    // 🔥 Add Lesson
+    [HttpPost("/api/sections/{sectionId}/lessons")]
+    public async Task<IActionResult> AddLesson(int sectionId, CreateLessonDto dto)
+    {
+        await _courseService.AddLesson(sectionId, dto);
+        return Ok();
+    }
+
+    // 🔥 Add Block
+    [HttpPost("/api/lessons/{lessonId}/blocks")]
+    public async Task<IActionResult> AddBlock(int lessonId, CreateLessonBlockDto dto)
+    {
+        await _courseService.AddLessonBlock(lessonId, dto);
+        return Ok();
+    }
+
+    // 🔥 Get Blocks
+    [HttpGet("/api/lessons/{lessonId}/blocks")]
+    public async Task<IActionResult> GetBlocks(int lessonId)
+    {
+        var result = await _courseService.GetLessonBlocks(lessonId);
+        return Ok(result);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetCourses()
     {
