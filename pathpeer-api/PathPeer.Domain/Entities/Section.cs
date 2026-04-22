@@ -6,6 +6,7 @@ public class Section
 {
     public int Id { get; set; }
     public string Title { get; set; } = null!;
+    public int Order { get; set; }
 
     // Relație cu Course
     public int CourseId { get; set; }

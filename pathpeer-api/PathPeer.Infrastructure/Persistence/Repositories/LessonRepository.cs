@@ -1,4 +1,5 @@
 using System;
+using Microsoft.EntityFrameworkCore;
 using PathPeer.Application.Interfaces.Repositories;
 using PathPeer.Domain.Entities;
 
@@ -17,5 +18,14 @@ public class LessonRepository : ILessonRepository
     {
         _db.Lessons.Add(lesson);
         await _db.SaveChangesAsync();
+    }
+
+    public async Task<int> GetLastLessonOrderAsync(int sectionId)
+    {
+        return await _db.Lessons
+            .Where(x => x.SectionId == sectionId)
+            .OrderByDescending(x => x.Order)
+            .Select(x => x.Order)
+            .FirstOrDefaultAsync();
     }
 }

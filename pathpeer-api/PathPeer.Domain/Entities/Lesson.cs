@@ -4,6 +4,7 @@ public class Lesson
 {
     public int id { get; set; }
     public string Title { get; set; } = null!;
+    public int Order { get; set; }
 
     // Relație cu Section
     public int SectionId { get; set; }

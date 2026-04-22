@@ -66,10 +66,13 @@ public class CourseService : ICourseService
 
     public async Task AddSection(int courseId, CreateSectionDto dto)
     {
+        var lastOrder = await _sectionRepository.GetLastSectionOrderAsync(courseId);
+
         var section = new Section
         {
             Title = dto.Title,
-            CourseId = courseId
+            CourseId = courseId,
+            Order = lastOrder + 1
         };
 
         await _sectionRepository.AddSectionAsync(section);
@@ -77,10 +80,13 @@ public class CourseService : ICourseService
 
     public async Task AddLesson(int sectionId, CreateLessonDto dto)
     {
+        var lastOrder = await _lessonRepository.GetLastLessonOrderAsync(sectionId);
+
         var lesson = new Lesson
         {
             Title = dto.Title,
-            SectionId = sectionId
+            SectionId = sectionId,
+            Order = lastOrder + 1
         };
 
         await _lessonRepository.AddLessonAsync(lesson);
