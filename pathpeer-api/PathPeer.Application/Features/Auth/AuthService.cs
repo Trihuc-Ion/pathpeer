@@ -69,7 +69,7 @@ public class AuthService : IAuthService
 
         if (!_passwordHasher.Verify(dto.Password, user.PasswordHash))
             throw new Exception("Email sau parolă incorectă");
-
+        
         var token = _tokenService.GenerateToken(user);
 
         return new AuthResponseDto

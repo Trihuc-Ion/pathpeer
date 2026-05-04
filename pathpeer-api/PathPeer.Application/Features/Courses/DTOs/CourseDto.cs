@@ -25,4 +25,6 @@ public class CourseDto
 
     public int CreatorId { get; set; }
     public string CreatorUsername { get; set; } = null!;
+
+    public List<SectionDto> Sections { get; set; } = new();
 }

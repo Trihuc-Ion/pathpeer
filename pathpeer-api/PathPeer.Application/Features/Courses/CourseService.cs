@@ -64,7 +64,7 @@ public class CourseService : ICourseService
 
     
 
-    public async Task AddSection(int courseId, CreateSectionDto dto)
+    public async Task<SectionDto> AddSection(int courseId, CreateSectionDto dto)
     {
         var lastOrder = await _sectionRepository.GetLastSectionOrderAsync(courseId);
 
@@ -76,9 +76,15 @@ public class CourseService : ICourseService
         };
 
         await _sectionRepository.AddSectionAsync(section);
+        return new SectionDto
+        {
+            Id = section.Id,
+            Title = section.Title,
+            Order = section.Order
+        };
     }
 
-    public async Task AddLesson(int sectionId, CreateLessonDto dto)
+    public async Task<LessonDto> AddLesson(int sectionId, CreateLessonDto dto)
     {
         var lastOrder = await _lessonRepository.GetLastLessonOrderAsync(sectionId);
 
@@ -90,6 +96,12 @@ public class CourseService : ICourseService
         };
 
         await _lessonRepository.AddLessonAsync(lesson);
+        return new LessonDto
+        {
+            Id = lesson.id,
+            Title = lesson.Title,
+            Order = lesson.Order
+        };
     }
 
     public async Task AddLessonBlock(int lessonId, CreateLessonBlockDto dto)
@@ -130,7 +142,27 @@ public class CourseService : ICourseService
             // VotesDown = course.VotesDown,
             CreatedAt = course.CreatedAt,
             CreatorId = course.CreatorId,
-            CreatorUsername = course.Creator.Username
+            CreatorUsername = course.Creator.Username,
+
+            Sections = course.Sections?.Select(s => new SectionDto
+            {
+                Id = s.Id,
+                Title = s.Title,
+                Order = s.Order,
+                Lessons = s.Lessons?.Select(l => new LessonDto
+                {
+                    Id = l.id,
+                    Title = l.Title,
+                    Order = l.Order,
+                    Blocks = l.Blocks?.Select(b => new BlockDto
+                    {
+                        Id = b.Id,
+                        Type = b.Type.ToString(),
+                        Order = b.Order,
+                        Data = BlockDataHelper.Deserialize(b)
+                    }).ToList() ?? new()
+                }).ToList() ?? new()
+            }).ToList() ?? new()
         };
     }
 

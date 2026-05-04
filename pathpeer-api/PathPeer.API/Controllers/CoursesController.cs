@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PathPeer.Application.Features.Courses.DTOs;
 using PathPeer.Application.Interfaces.Services;
+using PathPeer.Domain.Entities;
 
 namespace PathPeer.API.Controllers
 {
@@ -30,16 +31,16 @@ public class CoursesController : ControllerBase
     [HttpPost("{courseId}/sections")]
     public async Task<IActionResult> AddSection(int courseId, CreateSectionDto dto)
     {
-        await _courseService.AddSection(courseId, dto);
-        return Ok();
+        var section = await _courseService.AddSection(courseId, dto);
+        return Ok(section);
     }
 
     // 🔥 Add Lesson
     [HttpPost("/api/sections/{sectionId}/lessons")]
     public async Task<IActionResult> AddLesson(int sectionId, CreateLessonDto dto)
     {
-        await _courseService.AddLesson(sectionId, dto);
-        return Ok();
+        var lesson = await _courseService.AddLesson(sectionId, dto);
+        return Ok(lesson);
     }
 
     // 🔥 Add Block

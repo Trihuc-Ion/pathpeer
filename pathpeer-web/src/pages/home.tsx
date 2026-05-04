@@ -1,43 +1,76 @@
 import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "../features/auth/store/authStore"
+import { authApi } from "../features/auth/api/authApi"
+import { useMutation } from "@tanstack/react-query"
+import type React from "react"
 
 const Home = () => {
     const navigate = useNavigate()
-    const { user, logout } = useAuthStore()
+    const { user , setUser} = useAuthStore()
 
-    const handleLogout = () => {
-        logout()
+    const { mutate: logout } = useMutation({
+    mutationFn: authApi.logout,
+    onSuccess: () => {
+        setUser(null)
         navigate('/login')
+    }
+})
+
+    const handleLogout = async (e : React.FormEvent) => {
+        e.preventDefault()
+        logout()      
     }
 
     return (
-        <div style={{ maxWidth: 600, margin: '100px auto', padding: 20 }}>
-            <h1>PathPeer</h1>
+        <div className="home-container">
+            <div className="home-card">
+                <h1 className="home-title">PathPeer</h1>
 
-            {user ? (
-                // Autentificat
-                <div>
-                    <p>Salut, <strong>{user.username}</strong>!</p>
-                    <p>Rol: {user.role}</p>
-                    <button onClick={() => navigate('/courses')}>
-                        Vezi Cursuri
-                    </button>
-                    <button onClick={handleLogout} style={{ marginLeft: 10 }}>
-                        Logout
-                    </button>
-                </div>
-            ) : (
-                // Neautentificat
-                <div>
-                    <p>Bine ai venit pe PathPeer!</p>
-                    <button onClick={() => navigate('/login')}>
-                        Login
-                    </button>
-                    <button onClick={() => navigate('/register')} style={{ marginLeft: 10 }}>
-                        Register
-                    </button>
-                </div>
-            )}
+                {user ? (
+                    <div className="home-content">
+                        <p>
+                            Salut, <strong>{user.username}</strong> 👋
+                        </p>
+                        <p className="role">Rol: {user.role}</p>
+
+                        <div className="button-group">
+                            <button
+                                className="btn primary"
+                                onClick={() => navigate('/courses')}
+                            >
+                                Vezi Cursuri
+                            </button>
+
+                            <button
+                                className="btn danger"
+                                onClick={handleLogout}
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="home-content">
+                        <p>Bine ai venit pe PathPeer 🚀</p>
+
+                        <div className="button-group">
+                            <button
+                                className="btn primary"
+                                onClick={() => navigate('/login')}
+                            >
+                                Login
+                            </button>
+
+                            <button
+                                className="btn secondary"
+                                onClick={() => navigate('/register')}
+                            >
+                                Register
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

@@ -12,24 +12,70 @@ namespace PathPeer.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IWebHostEnvironment _env;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IWebHostEnvironment env)
         {
             _authService = authService;
+            _env = env;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            var result = await _authService.RegisterAsync(dto);
-            return Ok(result);
+            try
+            {
+                var result = await _authService.RegisterAsync(dto);
+
+                Response.Cookies.Append("authToken", result.Token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = !_env.IsDevelopment(),
+                    SameSite = _env.IsDevelopment()
+                            ? SameSiteMode.Lax                     
+                            : SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddHours(24)
+                });
+
+                return Ok(result.User);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            var result = await _authService.LoginAsync(dto);
-            return Ok(result);
+            try
+            {
+                var result = await _authService.LoginAsync(dto);
+
+                Response.Cookies.Append("authToken", result.Token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = !_env.IsDevelopment(),
+                    SameSite = _env.IsDevelopment()
+                            ? SameSiteMode.Lax                     
+                            : SameSiteMode.Strict,
+                    Expires = result.Expiration
+                });
+                
+                return Ok(result.User);  
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("authToken");
+            return Ok();
         }
 
         [HttpGet("profile")]

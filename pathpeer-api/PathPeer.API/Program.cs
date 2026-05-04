@@ -42,8 +42,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // JWT
-var jwtSecret = builder.Configuration["Jwt:Secret"] ??
-    throw new InvalidOperationException("JWT Secret lipsește din appsettings.json");
+var jwt = builder.Configuration.GetSection("Jwt");
+
+var key = jwt["Key"];
+var issuer = jwt["Issuer"];
+var audience = jwt["Audience"];
 
 builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("Jwt"));
@@ -53,24 +56,36 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            ValidIssuer = issuer,
+            ValidAudience = audience,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSecret)),
-            ValidateIssuer = false,
-            ValidateAudience = false
+                Encoding.UTF8.GetBytes(key ??
+                throw new InvalidOperationException("JWT Key lipsește din appsettings.json")))
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                context.Token = context.Request.Cookies["authToken"];
+                return Task.CompletedTask;
+            }
         };
     });
-
-builder.Services.AddAuthorization();
 
 // CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -107,10 +122,10 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 
 var app = builder.Build();
 
-app.UseCors(builder =>
-    builder.AllowAnyOrigin()
-           .AllowAnyMethod()
-           .AllowAnyHeader());
+app.UseCors("AllowFrontend");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -119,22 +134,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-
 // Hangfire Dashboard
 app.UseHangfireDashboard("/hangfire");
 
 app.MapControllers();
-
-// Health check — verifici că API-ul răspunde
-app.MapGet("/api/health", () => Results.Ok(new
-{
-    status = "healthy",
-    timestamp = DateTime.UtcNow
-}));
 
 app.Run();
