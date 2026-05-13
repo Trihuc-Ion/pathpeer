@@ -24,4 +24,6 @@ public class User
 
     // Navigație
     public ICollection<Course> Courses { get; set; } = new List<Course>();
+
+    public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 }

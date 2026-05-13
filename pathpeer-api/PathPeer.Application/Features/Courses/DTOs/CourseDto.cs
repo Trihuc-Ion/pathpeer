@@ -18,8 +18,10 @@ public class CourseDto
     public string Status { get; set; } = null!;
     public int Version { get; set; }
 
-    // public int VotesUp { get; set; }
-    // public int VotesDown { get; set; }
+    public int VotesUp { get; set; }
+    public int VotesDown { get; set; }
+    public int Score { get; set; }
+    public int TotalVotes { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

@@ -12,10 +12,46 @@ public class AppDbContext : DbContext
     public DbSet<Section> Sections => Set<Section>();
     public DbSet<Lesson> Lessons => Set<Lesson>();
     public DbSet<LessonBlock> LessonBlocks => Set<LessonBlock>();
+    public DbSet<Enrollment> Enrollments { get; set; }
+    public DbSet<CourseVote> CourseVotes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // CourseVote: User ↔ Course (Many-to-Many with payload)
+        modelBuilder.Entity<CourseVote>()
+            .HasIndex(v => new { v.UserId, v.CourseId })
+            .IsUnique();
+        
+        modelBuilder.Entity<CourseVote>()
+            .HasOne(v => v.User)
+            .WithMany()
+            .HasForeignKey(v => v.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CourseVote>()
+            .HasOne(v => v.Course)
+            .WithMany(c => c.Votes)
+            .HasForeignKey(v => v.CourseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Enrollment: User ↔ Course (Many-to-Many)
+        modelBuilder.Entity<Enrollment>()
+            .HasIndex(e => new { e.UserId, e.CourseId })
+            .IsUnique();
+            
+        modelBuilder.Entity<Enrollment>()
+            .HasOne(e => e.User)
+            .WithMany(u => u.Enrollments)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Enrollment>()
+            .HasOne(e => e.Course)
+            .WithMany(u => u.Enrollments)
+            .HasForeignKey(e => e.CourseId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Course → Sections
         modelBuilder.Entity<Section>()

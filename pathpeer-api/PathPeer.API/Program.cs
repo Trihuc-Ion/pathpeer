@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using PathPeer.Application.Common;
 using PathPeer.Application.Features.Auth;
 using PathPeer.Application.Features.Courses;
+using PathPeer.Application.Features.Courses.Services;
 using PathPeer.Application.Interfaces.Repositories;
 using PathPeer.Application.Interfaces.Services;
 using PathPeer.Infrastructure.Persistence;
@@ -107,17 +108,24 @@ builder.Services.AddStackExchangeRedisCache(options =>
 // Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+// Enrollment
+builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+
+builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+
 // Services
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Course
+builder.Services.AddScoped<ICourseVoteRepository, CourseVoteRepository>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<ISectionRepository, SectionRepository>();
 builder.Services.AddScoped<ILessonRepository, LessonRepository>();
 builder.Services.AddScoped<ILessonBlockRepository, LessonBlockRepository>();
 
+builder.Services.AddScoped<ICourseVoteService, CourseVoteService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 
 var app = builder.Build();

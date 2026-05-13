@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PathPeer.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using PathPeer.Infrastructure.Persistence;
 namespace PathPeer.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260506161904_AddEnrollment")]
+    partial class AddEnrollment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,12 +52,6 @@ namespace PathPeer.Infrastructure.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
-                    b.Property<DateTime?>("ReviewEndsAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ReviewStartedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -68,47 +65,11 @@ namespace PathPeer.Infrastructure.Migrations
                     b.Property<int>("Version")
                         .HasColumnType("integer");
 
-                    b.Property<int>("VotesDown")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("VotesUp")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CreatorId");
 
                     b.ToTable("Courses");
-                });
-
-            modelBuilder.Entity("PathPeer.Domain.Entities.CourseVote", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CourseId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CourseId");
-
-                    b.HasIndex("UserId", "CourseId")
-                        .IsUnique();
-
-                    b.ToTable("CourseVotes");
                 });
 
             modelBuilder.Entity("PathPeer.Domain.Entities.Enrollment", b =>
@@ -273,25 +234,6 @@ namespace PathPeer.Infrastructure.Migrations
                     b.Navigation("Creator");
                 });
 
-            modelBuilder.Entity("PathPeer.Domain.Entities.CourseVote", b =>
-                {
-                    b.HasOne("PathPeer.Domain.Entities.Course", "Course")
-                        .WithMany("Votes")
-                        .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PathPeer.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Course");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("PathPeer.Domain.Entities.Enrollment", b =>
                 {
                     b.HasOne("PathPeer.Domain.Entities.Course", "Course")
@@ -349,8 +291,6 @@ namespace PathPeer.Infrastructure.Migrations
                     b.Navigation("Enrollments");
 
                     b.Navigation("Sections");
-
-                    b.Navigation("Votes");
                 });
 
             modelBuilder.Entity("PathPeer.Domain.Entities.Lesson", b =>

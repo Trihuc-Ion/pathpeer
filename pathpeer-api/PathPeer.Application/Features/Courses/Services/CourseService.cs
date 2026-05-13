@@ -6,7 +6,7 @@ using PathPeer.Application.Interfaces.Repositories;
 using PathPeer.Application.Interfaces.Services;
 using PathPeer.Domain.Entities;
 
-namespace PathPeer.Application.Features.Courses;
+namespace PathPeer.Application.Features.Courses.Services;
 
 public class CourseService : ICourseService
 {
@@ -27,7 +27,7 @@ public class CourseService : ICourseService
         _lessonRepository = lessonRepository;
         _lessonBlockRepository = lessonBlockRepository;
     }
-    
+
     public async Task<CourseDto> CreateCourseAsync(CreateCourseDto dto, int creatorId)
     {
         var course = new Course
@@ -62,7 +62,7 @@ public class CourseService : ICourseService
         };
     }
 
-    
+
 
     public async Task<SectionDto> AddSection(int courseId, CreateSectionDto dto)
     {
@@ -123,10 +123,10 @@ public class CourseService : ICourseService
     public async Task<CourseDto> GetCourseByIdAsync(int id)
     {
         var course = await _courseRepository.GetCourseByIdAsync(id);
-    
+
         if (course == null)
             throw new Exception("Cursul nu a fost găsit");
-            
+
         return new CourseDto
         {
             Id = course.Id,
@@ -169,7 +169,7 @@ public class CourseService : ICourseService
     public async Task<List<CourseDto>> GetCoursesAsync()
     {
         var courses = await _courseRepository.GetCoursesAsync();
-        
+
         return courses.Select(c => new CourseDto
         {
             Id = c.Id,
@@ -198,5 +198,121 @@ public class CourseService : ICourseService
             b.Type,
             Data = BlockDataHelper.Deserialize(b)
         });
+    }
+
+    public async Task<CourseDto> UpdateCourseAsync(int courseId, UpdateCourseDto dto, int userId)
+    {
+        var course = await _courseRepository.GetCourseByIdAsync(courseId);
+        if (course == null)
+            throw new Exception("Cursul nu există");
+
+        if (course.CreatorId != userId)
+            throw new Exception("Nu ai permisiunea să modifici acest curs");
+
+        if (dto.Title != null) course.Title = dto.Title;
+        if (dto.Description != null) course.Description = dto.Description;
+        if (dto.Language != null) course.Language = dto.Language;
+        if (dto.Price != null) course.Price = dto.Price.Value;
+        if (dto.Level != null) course.Level = dto.Level;
+
+        var updated = await _courseRepository.UpdateCourseAsync(course);
+
+        return new CourseDto
+        {
+            Id = updated.Id,
+            Title = updated.Title,
+            Description = updated.Description,
+            Language = updated.Language,
+            Price = updated.Price,
+            Level = updated.Level,
+            Status = updated.Status.ToString(),
+            Version = updated.Version,
+            CreatedAt = updated.CreatedAt,
+            CreatorId = updated.CreatorId,
+            CreatorUsername = updated.Creator.Username
+        };
+    }
+
+    public async Task DeleteCourseAsync(int courseId, int userId)
+    {
+        var course = await _courseRepository.GetCourseByIdAsync(courseId);
+        if (course == null)
+            throw new Exception("Cursul nu există");
+
+        if (course.CreatorId != userId)
+            throw new Exception("Nu ai permisiunea să ștergi acest curs");
+
+        await _courseRepository.DeleteCourseAsync(course);
+    }
+
+    public async Task<SectionDto> UpdateSectionAsync(int sectionId, UpdateSectionDto dto)
+    {
+        var section = await _sectionRepository.GetSectionByIdAsync(sectionId)
+        ?? throw new Exception("Secțiunea nu există");
+
+        section.Title = dto.Title;
+        await _sectionRepository.UpdateSectionAsync(section);
+
+        return new SectionDto { Id = section.Id, Title = section.Title, Order = section.Order };
+    }
+
+    public async Task DeleteSectionAsync(int sectionId)
+    {
+        var section = await _sectionRepository.GetSectionByIdAsync(sectionId)
+        ?? throw new Exception("Secțiunea nu există");
+
+        await _sectionRepository.DeleteSectionAsync(section);
+    }
+
+    public async Task ReorderSectionsAsync(int courseId, List<int> orderedSectionIds)
+    {
+        await _sectionRepository.ReorderSectionsAsync(courseId, orderedSectionIds);
+    }
+
+    public async Task<LessonDto> UpdateLessonAsync(int lessonId, UpdateLessonDto dto)
+    {
+        var lesson = await _lessonRepository.GetLessonByIdAsync(lessonId)
+        ?? throw new Exception("Lecția nu există");
+
+        lesson.Title = dto.Title;
+        await _lessonRepository.UpdateLessonAsync(lesson);
+
+        return new LessonDto { Id = lesson.id, Title = lesson.Title, Order = lesson.Order };
+
+    }
+
+    public async Task DeleteLessonAsync(int lessonId)
+    {
+        var lesson = await _lessonRepository.GetLessonByIdAsync(lessonId)
+        ?? throw new Exception("Lecția nu există");
+
+        await _lessonRepository.DeleteLessonAsync(lesson);
+    }
+
+    public async Task ReorderLessonsAsync(int sectionId, List<int> orderedLessonIds)
+    {
+        await _lessonRepository.ReorderLessonsAsync(sectionId, orderedLessonIds);
+    }
+
+    public async Task UpdateLessonBlock(int blockId, UpdateLessonBlockDto dto)
+    {
+        var block = await _lessonBlockRepository.GetLessonBlockByIdAsync(blockId)
+        ?? throw new Exception("Block-ul nu există");
+
+        block.Data = JsonSerializer.Serialize(dto.Data);
+        await _lessonBlockRepository.UpdateLessonBlockAsync(block);
+    }
+
+    public async Task DeleteLessonBlock(int blockId)
+    {
+        var block = await _lessonBlockRepository.GetLessonBlockByIdAsync(blockId)
+        ?? throw new Exception("Block-ul nu există");
+
+        await _lessonBlockRepository.DeleteLessonBlockAsync(block);
+    }
+
+    public async Task ReorderBlocksAsync(int lessonId, List<int> orderedBlockIds)
+    {
+        await _lessonBlockRepository.ReorderLessonBlocksAsync(lessonId, orderedBlockIds);
     }
 }

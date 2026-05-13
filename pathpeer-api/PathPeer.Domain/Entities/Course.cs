@@ -19,22 +19,30 @@ public class Course
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 
-    // Relație cu User
+    // Review
+    public DateTime? ReviewStartedAt { get; set; }
+    public DateTime? ReviewEndsAt { get; set; }
+
+    // Voturi
+    public int VotesUp { get; set; } = 0;
+    public int VotesDown { get; set; } = 0;
+    public int TotalVotes => VotesUp + VotesDown;
+    public int Score => VotesUp - VotesDown;
+
+    // Logică
+    public bool CanBeApproved() =>
+        VotesUp >= 10 &&
+        ReviewEndsAt.HasValue &&
+        ReviewEndsAt.Value <= DateTime.UtcNow;
+
+    public bool IsInReview =>
+        Status == CourseStatus.InReviewCloud &&
+        ReviewEndsAt.HasValue;
+
+    // Relatii
     public int CreatorId { get; set; }
     public User Creator { get; set; } = null!;
-
     public ICollection<Section> Sections { get; set; } = new List<Section>();
-
-
-
-    // public DateTime? ReviewStartedAt { get; set; }
-    // public DateTime? ReviewEndsAt { get; set; }
-    // public bool CanBeApproved() =>
-    //     ReviewEndsAt.HasValue &&
-    //     ReviewEndsAt.Value <= DateTime.UtcNow;
-    // public string? Category { get; set; }
-    // public int VotesUp { get; set; } = 0;
-    // public int VotesDown { get; set; } = 0;
-    // public bool CanBeApproved() =>
-    //     VotesUp >= 10 && ReviewEndsAt <= DateTime.UtcNow;
+    public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+    public ICollection<CourseVote> Votes { get; set; } = new List<CourseVote>();
 }

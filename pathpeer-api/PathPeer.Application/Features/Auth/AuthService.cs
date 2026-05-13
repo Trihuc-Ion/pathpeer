@@ -41,10 +41,10 @@ public class AuthService : IAuthService
 
         var createdUser = await _userRepository.CreateAsync(user);
 
-        // 4. Generezi JWT token
+        // Generezi JWT token
         var token = _tokenService.GenerateToken(createdUser);
 
-        // 5. Returnezi AuthResponseDto
+        // Returnezi AuthResponseDto
         return new AuthResponseDto
         {
             Token = token,
