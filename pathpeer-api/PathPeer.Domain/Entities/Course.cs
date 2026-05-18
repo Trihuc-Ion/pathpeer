@@ -45,4 +45,5 @@ public class Course
     public ICollection<Section> Sections { get; set; } = new List<Section>();
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     public ICollection<CourseVote> Votes { get; set; } = new List<CourseVote>();
+    public ICollection<UserLicense> Licenses { get; set; } = new List<UserLicense>();
 }

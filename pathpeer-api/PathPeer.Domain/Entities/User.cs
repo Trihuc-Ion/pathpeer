@@ -22,8 +22,10 @@ public class User
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    // Navigație
     public ICollection<Course> Courses { get; set; } = new List<Course>();
-
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+    public ICollection<UserLicense> Licenses { get; set; } = new List<UserLicense>();
+    public ICollection<Message> SentMessages { get; set; } = new List<Message>();
+    public ICollection<Message> ReceivedMessages { get; set; } = new List<Message>();
+    public UserPreferences? Preferences { get; set; }
 }
