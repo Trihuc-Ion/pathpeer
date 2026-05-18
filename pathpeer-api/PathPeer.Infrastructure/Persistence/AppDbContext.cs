@@ -14,6 +14,9 @@ public class AppDbContext : DbContext
     public DbSet<LessonBlock> LessonBlocks => Set<LessonBlock>();
     public DbSet<Enrollment> Enrollments { get; set; }
     public DbSet<CourseVote> CourseVotes { get; set; }
+    public DbSet<UserPreferences> UserPreferences { get; set; }
+    public DbSet<UserLicense> UserLicenses { get; set; }
+    public DbSet<Message> Messages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -73,5 +76,41 @@ public class AppDbContext : DbContext
             .WithMany(l => l.Blocks)
             .HasForeignKey(b => b.LessonId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // UserPreferences: 1-to-1 cu User
+        modelBuilder.Entity<UserPreferences>()
+            .HasOne(p => p.User)
+            .WithOne(u => u.Preferences)
+            .HasForeignKey<UserPreferences>(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // UserLicense: User ↔ Course (Many-to-Many cu payload)
+        modelBuilder.Entity<UserLicense>()
+            .HasIndex(l => new { l.UserId, l.CourseId })
+            .IsUnique();
+
+        modelBuilder.Entity<UserLicense>()
+            .HasOne(l => l.User)
+            .WithMany(u => u.Licenses)
+            .HasForeignKey(l => l.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserLicense>()
+            .HasOne(l => l.Course)
+            .WithMany(c => c.Licenses)
+            .HasForeignKey(l => l.CourseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Message>()
+            .HasOne(m => m.Sender)
+            .WithMany(u => u.SentMessages)
+            .HasForeignKey(m => m.SenderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Message>()
+            .HasOne(m => m.Receiver)
+            .WithMany(u => u.ReceivedMessages)
+            .HasForeignKey(m => m.ReceiverId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
