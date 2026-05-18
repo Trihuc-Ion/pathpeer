@@ -7,6 +7,8 @@ public interface ICourseService
 {
     Task<CourseDto> CreateCourseAsync(CreateCourseDto dto, int creatorId);
     Task<List<CourseDto>> GetCoursesAsync();
+    Task<List<CourseDto>> GetCoursesInReviewAsync();
+    Task SubmitForReviewAsync(int courseId, int userId);
     Task<CourseDto> GetCourseByIdAsync(int id);
     Task<CourseDto> UpdateCourseAsync(int courseId, UpdateCourseDto dto, int userId);
     Task DeleteCourseAsync(int courseId, int userId);

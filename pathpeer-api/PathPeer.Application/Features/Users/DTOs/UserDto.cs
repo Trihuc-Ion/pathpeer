@@ -9,4 +9,8 @@ public class UserDto
     public string Email { get; set; } = null!;
     public string Role { get; set; } = null!;
     public string TeacherStatus { get; set; } = null!;
+    public string? Bio { get; set; }
+    public string? ProfilePictureUrl { get; set; }
+    public string? TeacherBio { get; set; }
+    public DateTime? TeacherApprovedAt { get; set; }
 }

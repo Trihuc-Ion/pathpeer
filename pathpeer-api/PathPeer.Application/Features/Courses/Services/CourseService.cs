@@ -5,6 +5,7 @@ using PathPeer.Application.Features.Courses.Helpers;
 using PathPeer.Application.Interfaces.Repositories;
 using PathPeer.Application.Interfaces.Services;
 using PathPeer.Domain.Entities;
+using PathPeer.Domain.Enums;
 
 namespace PathPeer.Application.Features.Courses.Services;
 
@@ -314,5 +315,47 @@ public class CourseService : ICourseService
     public async Task ReorderBlocksAsync(int lessonId, List<int> orderedBlockIds)
     {
         await _lessonBlockRepository.ReorderLessonBlocksAsync(lessonId, orderedBlockIds);
+    }
+
+    public async Task<List<CourseDto>> GetCoursesInReviewAsync()
+    {
+        var courses = await _courseRepository.GetCoursesInReviewAsync();
+
+        return courses.Select(c => new CourseDto
+        {
+            Id = c.Id,
+            Title = c.Title,
+            Description = c.Description,
+            Price = c.Price,
+            Language = c.Language,
+            Level = c.Level,
+            Status = c.Status.ToString(),
+            Version = c.Version,
+            VotesUp = c.VotesUp,
+            VotesDown = c.VotesDown,
+            Score = c.Score,
+            TotalVotes = c.TotalVotes,
+            CreatedAt = c.CreatedAt,
+            CreatorId = c.CreatorId,
+            CreatorUsername = c.Creator.Username
+        }).ToList();
+    }
+
+    public async Task SubmitForReviewAsync(int courseId, int userId)
+    {
+        var course = await _courseRepository.GetCourseByIdAsync(courseId)
+            ?? throw new KeyNotFoundException("Cursul nu există.");
+
+        if (course.CreatorId != userId)
+            throw new UnauthorizedAccessException("Nu ești creatorul acestui curs.");
+
+        if (course.Status != CourseStatus.Draft && course.Status != CourseStatus.Rejected)
+            throw new InvalidOperationException("Numai cursurile Draft sau Rejected pot fi trimise la review.");
+
+        course.Status = CourseStatus.InReviewCloud;
+        course.ReviewStartedAt = DateTime.UtcNow;
+        course.ReviewEndsAt = DateTime.UtcNow.AddDays(7);
+
+        await _courseRepository.UpdateCourseAsync(course);
     }
 }
