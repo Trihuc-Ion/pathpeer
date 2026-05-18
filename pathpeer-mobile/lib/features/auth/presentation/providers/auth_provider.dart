@@ -1,34 +1,86 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pathpeer_mobile/core/storage/secure_storage.dart';
+import 'package:pathpeer_mobile/features/auth/domain/auth_repository.dart';
 
-// Stochează tokenul
-final tokenProvider = StateProvider<String?>((ref) => null);
+enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
-// Stochează userul — deocamdată null, îl completăm când facem auth feature
-final userProvider = StateProvider<Map<String, dynamic>?>((ref) => null);
+class AuthState {
+  final AuthStatus status;
+  final UserModel? user;
+  final String? error;
 
-// Funcții helper
-final authActionsProvider = Provider((ref) => AuthActions(ref));
+  const AuthState({
+    this.status = AuthStatus.initial,
+    this.user,
+    this.error,
+  });
 
-class AuthActions {
-  final Ref _ref;
-  AuthActions(this._ref);
+  AuthState copyWith({
+    AuthStatus? status,
+    UserModel? user,
+    String? error,
+  }) => AuthState(
+    status: status ?? this.status,
+    user: user ?? this.user,
+    error: error,
+  );
+}
 
-  Future<void> saveToken(String token) async {
-    await secureStorage.write(key: 'token', value: token);
-    _ref.read(tokenProvider.notifier).state = token;
+class AuthNotifier extends StateNotifier<AuthState> {
+  final AuthRepository _repo = AuthRepository();
+
+  AuthNotifier() : super(const AuthState()) {
+    checkAuth();
+  }
+
+  // Verifică dacă e logat la startup
+  Future<void> checkAuth() async {
+    final loggedIn = await _repo.isLoggedIn();
+    state = state.copyWith(
+      status: loggedIn
+          ? AuthStatus.authenticated
+          : AuthStatus.unauthenticated,
+    );
+  }
+
+  Future<void> login(String email, String password) async {
+    try {
+      state = state.copyWith(status: AuthStatus.loading, error: null);
+      final user = await _repo.login(email, password);
+      state = state.copyWith(status: AuthStatus.authenticated, user: user);
+    } catch (e) {
+      state = state.copyWith(
+        status: AuthStatus.error,
+        error: _parseError(e),
+      );
+    }
+  }
+
+  Future<void> register(String email, String password, String username) async {
+    try {
+      state = state.copyWith(status: AuthStatus.loading, error: null);
+      final user = await _repo.register(email, password, username);
+      state = state.copyWith(status: AuthStatus.authenticated, user: user);
+    } catch (e) {
+      state = state.copyWith(
+        status: AuthStatus.error,
+        error: _parseError(e),
+      );
+    }
   }
 
   Future<void> logout() async {
-    await secureStorage.delete(key: 'token');
-    _ref.read(tokenProvider.notifier).state = null;
-    _ref.read(userProvider.notifier).state = null;
+    await _repo.logout();
+    state = state.copyWith(status: AuthStatus.unauthenticated, user: null);
   }
 
-  Future<void> loadToken() async {
-    final token = await secureStorage.read(key: 'token');
-    if (token != null) {
-      _ref.read(tokenProvider.notifier).state = token;
+  String _parseError(dynamic e) {
+    if (e.toString().contains('message')) {
+      return e.response?.data['message'] ?? 'Eroare necunoscută';
     }
+    return 'Eroare la conectare. Verifică internetul.';
   }
 }
+
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>(
+  (ref) => AuthNotifier(),
+);

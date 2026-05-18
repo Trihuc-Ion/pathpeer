@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pathpeer_mobile/core/network/dio_client.dart';
-import '../providers/auth_provider.dart'; // client HTTP (Dio)
+import 'package:pathpeer_mobile/features/auth/presentation/providers/auth_provider.dart';
+import 'package:pathpeer_mobile/navigation/routes.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -12,124 +12,195 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
-  bool loading = false;
-  String? error;
-
-  Future<void> handleLogin() async {
-    setState(() {
-      loading = true;
-      error = null;
-    });
-
-    try {
-      final response = await dio.post(
-        '/auth/login',
-        data: {
-          'email': emailController.text,
-          'password': passwordController.text,
-        },
-      );
-
-      final user = response.data['user'];
-      final token = response.data['token'];
-
-      // Salvează token și user în Riverpod
-      await ref.read(authActionsProvider).saveToken(token);
-      ref.read(userProvider.notifier).state = user;
-
-      // Navighează către home
-      context.go('/');
-    } catch (e) {
-      setState(() {
-        error = "Email sau parolă incorectă";
-      });
-    } finally {
-      setState(() {
-        loading = false;
-      });
-    }
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(authProvider);
+
+    // Redirect dacă e logat
+    ref.listen(authProvider, (prev, next) {
+      if (next.status == AuthStatus.authenticated) {
+        context.go(Routes.home);
+      }
+    });
+
     return Scaffold(
-      body: Center(
-        child: Card(
-          margin: const EdgeInsets.all(20),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(30),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  "Login PathPeer",
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF38BDF8),
-                  ),
-                ),
+      backgroundColor: const Color(0xFF0F172A),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 40),
 
-                const SizedBox(height: 20),
-
-                if (error != null)
-                  Text(error!, style: const TextStyle(color: Colors.red)),
-
-                TextField(
-                  controller: emailController,
-                  decoration: const InputDecoration(
-                    labelText: "Email",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: "Parolă",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: loading ? null : handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+              // Logo
+              RichText(
+                text: const TextSpan(
+                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                  children: [
+                    TextSpan(
+                      text: 'Path',
+                      style: TextStyle(color: Colors.white),
                     ),
-                    child: loading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text("Login"),
+                    TextSpan(
+                      text: 'Peer',
+                      style: TextStyle(color: Colors.indigo),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Intră în contul tău',
+                style: TextStyle(color: Colors.white54),
+              ),
+
+              const SizedBox(height: 40),
+
+              // Email
+              _InputField(
+                controller: _emailController,
+                label: 'Email',
+                hint: 'ion@gmail.com',
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 16),
+
+              // Parolă
+              _InputField(
+                controller: _passwordController,
+                label: 'Parolă',
+                hint: '********',
+                obscureText: true,
+              ),
+              const SizedBox(height: 24),
+
+              // Eroare
+              if (state.error != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    state.error!,
+                    style: const TextStyle(color: Colors.red),
                   ),
                 ),
 
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: () => context.go('/register'),
-                  child: const Text("Nu ai cont? Înregistrează-te"),
+              // Buton login
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: state.status == AuthStatus.loading
+                      ? null
+                      : () => ref.read(authProvider.notifier).login(
+                            _emailController.text,
+                            _passwordController.text,
+                          ),
+                  child: state.status == AuthStatus.loading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'Login',
+                          style: TextStyle(fontSize: 16),
+                        ),
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Link register
+              Center(
+                child: GestureDetector(
+                  onTap: () => context.go(Routes.register),
+                  child: const Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Nu ai cont? ',
+                          style: TextStyle(color: Colors.white54),
+                        ),
+                        TextSpan(
+                          text: 'Înregistrează-te',
+                          style: TextStyle(color: Colors.indigo),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _InputField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final bool obscureText;
+  final TextInputType? keyboardType;
+
+  const _InputField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+    this.obscureText = false,
+    this.keyboardType,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.white70)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          obscureText: obscureText,
+          keyboardType: keyboardType,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: Colors.white30),
+            filled: true,
+            fillColor: const Color(0xFF1E293B),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.indigo),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
