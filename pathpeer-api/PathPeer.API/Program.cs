@@ -6,9 +6,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PathPeer.Application.Common;
+using PathPeer.API.Hubs;
 using PathPeer.Application.Features.Auth;
-using PathPeer.Application.Features.Courses;
 using PathPeer.Application.Features.Courses.Services;
+using PathPeer.Application.Features.Users;
 using PathPeer.Application.Interfaces.Repositories;
 using PathPeer.Application.Interfaces.Services;
 using PathPeer.Infrastructure.Persistence;
@@ -72,7 +73,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
-                context.Token = context.Request.Cookies["authToken"];
+                context.Token = context.Request.Cookies["authToken"]
+                    ?? context.Request.Query["access_token"].ToString();
                 return Task.CompletedTask;
             }
         };
@@ -117,6 +119,13 @@ builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IReviewJobService, ReviewJobService>();
+builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+
+builder.Services.AddSignalR();
 
 // Course
 builder.Services.AddScoped<ICourseVoteRepository, CourseVoteRepository>();
@@ -145,6 +154,13 @@ if (app.Environment.IsDevelopment())
 // Hangfire Dashboard
 app.UseHangfireDashboard("/hangfire");
 
+RecurringJob.AddOrUpdate<IReviewJobService>(
+    "process-expired-reviews",
+    job => job.ProcessExpiredReviewsAsync(),
+    Cron.Daily
+);
+
 app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();

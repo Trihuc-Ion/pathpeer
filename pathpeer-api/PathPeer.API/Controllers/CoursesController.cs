@@ -227,5 +227,27 @@ namespace PathPeer.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPost("{id}/submit-review")]
+        [Authorize]
+        public async Task<IActionResult> SubmitForReview(int id)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                await _courseService.SubmitForReviewAsync(id, userId);
+                return Ok(new { message = "Cursul a fost trimis la review." });
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+            catch (UnauthorizedAccessException) { return Forbid(); }
+            catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        [HttpGet("in-review")]
+        public async Task<IActionResult> GetCoursesInReview()
+        {
+            var courses = await _courseService.GetCoursesInReviewAsync();
+            return Ok(courses);
+        }
     }
 }
