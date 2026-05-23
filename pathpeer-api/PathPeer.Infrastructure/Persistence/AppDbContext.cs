@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<UserPreferences> UserPreferences { get; set; }
     public DbSet<UserLicense> UserLicenses { get; set; }
     public DbSet<Message> Messages { get; set; }
+    public DbSet<P2PTransfer> P2PTransfers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -112,5 +113,23 @@ public class AppDbContext : DbContext
             .WithMany(u => u.ReceivedMessages)
             .HasForeignKey(m => m.ReceiverId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<P2PTransfer>()
+            .HasOne(t => t.Sender)
+            .WithMany()
+            .HasForeignKey(t => t.SenderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<P2PTransfer>()
+            .HasOne(t => t.Receiver)
+            .WithMany()
+            .HasForeignKey(t => t.ReceiverId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<P2PTransfer>()
+            .HasOne(t => t.Course)
+            .WithMany()
+            .HasForeignKey(t => t.CourseId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
