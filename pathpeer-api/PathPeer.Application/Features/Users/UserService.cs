@@ -8,10 +8,12 @@ namespace PathPeer.Application.Features.Users;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IEmailService _emailService;
 
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository userRepository, IEmailService emailService)
     {
         _userRepository = userRepository;
+        _emailService = emailService;
     }
 
     public async Task<UserDto> UpdateProfileAsync(int userId, UpdateProfileDto dto)
@@ -67,6 +69,7 @@ public class UserService : IUserService
         user.TeacherApprovedAt = DateTime.UtcNow;
 
         await _userRepository.UpdateUserAsync(user);
+        await _emailService.SendTeacherApprovedAsync(user.Email, user.Username);
     }
 
     public async Task RejectTeacherAsync(int targetUserId)
@@ -80,5 +83,6 @@ public class UserService : IUserService
         user.TeacherStatus = TeacherStatus.Rejected;
 
         await _userRepository.UpdateUserAsync(user);
+        await _emailService.SendTeacherRejectedAsync(user.Email, user.Username);
     }
 }
