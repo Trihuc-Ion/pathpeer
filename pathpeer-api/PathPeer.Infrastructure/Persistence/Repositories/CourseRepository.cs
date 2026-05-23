@@ -54,6 +54,7 @@ public class CourseRepository : ICourseRepository
 
     public async Task<List<Course>> GetExpiredReviewCoursesAsync() =>
         await _db.Courses
+            .Include(c => c.Creator)
             .Where(c => c.Status == CourseStatus.InReviewCloud && c.ReviewEndsAt <= DateTime.UtcNow)
             .ToListAsync();
 

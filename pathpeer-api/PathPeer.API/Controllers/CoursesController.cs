@@ -127,7 +127,7 @@ namespace PathPeer.API.Controllers
         // Add Block
         [HttpPost("/api/lessons/{lessonId}/blocks")]
         [Authorize]
-        public async Task<IActionResult> AddBlock(int lessonId, CreateLessonBlockDto dto)
+        public async Task<IActionResult> AddBlock(int lessonId, [FromBody] CreateLessonBlockDto dto)
         {
             await _courseService.AddLessonBlock(lessonId, dto);
             return Ok();

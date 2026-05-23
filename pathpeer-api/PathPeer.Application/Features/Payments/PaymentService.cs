@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using PathPeer.Application.Features.Payments.DTOs;
 using PathPeer.Application.Interfaces.Repositories;
 using PathPeer.Application.Interfaces.Services;
@@ -12,19 +13,22 @@ public class PaymentService : IPaymentService
     private readonly ILicenseRepository _licenseRepository;
     private readonly IUserRepository _userRepository;
     private readonly IEmailService _emailService;
+    private readonly ILogger<PaymentService> _logger;
 
     public PaymentService(
         IEnumerable<IPaymentProvider> providers,
         ICourseRepository courseRepository,
         ILicenseRepository licenseRepository,
         IUserRepository userRepository,
-        IEmailService emailService)
+        IEmailService emailService,
+        ILogger<PaymentService> logger)
     {
         _providers = providers;
         _courseRepository = courseRepository;
         _licenseRepository = licenseRepository;
         _userRepository = userRepository;
         _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<CheckoutResultDto> CreateCheckoutAsync(int userId, int courseId, string provider, string successUrl, string cancelUrl)
@@ -44,10 +48,12 @@ public class PaymentService : IPaymentService
                 AmountPaid = 0,
                 Currency = "USD"
             });
+            _logger.LogInformation("Licență gratuită creată: userId={UserId}, courseId={CourseId}, title={Title}", userId, courseId, course.Title);
             return new CheckoutResultDto { CheckoutUrl = string.Empty, SessionId = string.Empty };
         }
 
         var paymentProvider = GetProvider(provider);
+        _logger.LogInformation("Checkout inițiat: userId={UserId}, courseId={CourseId}, provider={Provider}", userId, courseId, provider);
 
         return await paymentProvider.CreateCheckoutSessionAsync(new CreateCheckoutDto
         {
@@ -70,7 +76,10 @@ public class PaymentService : IPaymentService
             return;
 
         if (await _licenseRepository.ExistsAsync(result.UserId, result.CourseId))
+        {
+            _logger.LogWarning("Webhook primit dar licența există deja: userId={UserId}, courseId={CourseId}", result.UserId, result.CourseId);
             return;
+        }
 
         await _licenseRepository.CreateAsync(new UserLicense
         {
@@ -81,6 +90,9 @@ public class PaymentService : IPaymentService
             StripeSessionId = result.SessionId,
             StripePaymentIntentId = result.PaymentIntentId
         });
+
+        _logger.LogInformation("Plată procesată: userId={UserId}, courseId={CourseId}, amount={Amount} {Currency}",
+            result.UserId, result.CourseId, result.AmountPaid, result.Currency);
 
         var course = await _courseRepository.GetCourseByIdAsync(result.CourseId);
         var user = await _userRepository.GetByIdAsync(result.UserId);

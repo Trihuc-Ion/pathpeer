@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PathPeer.Application.Features.Auth.DTOs;
 using PathPeer.Application.Interfaces.Services;
+using Serilog;
 
 namespace PathPeer.API.Controllers
 {
@@ -66,7 +67,7 @@ namespace PathPeer.API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Log.Error(ex, "Login failed for {Email}", dto.Email);
                 return Unauthorized(new { message = ex.Message });
             }
         }

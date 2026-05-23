@@ -38,6 +38,9 @@ public class ChatHub : Hub
         if (string.IsNullOrWhiteSpace(content))
             throw new HubException("Mesajul nu poate fi gol.");
 
+        if (content.Length > 2000)
+            throw new HubException("Mesajul nu poate depăși 2000 de caractere.");
+
         var message = await _messageRepository.CreateMessageAsync(new Message
         {
             SenderId = senderId,

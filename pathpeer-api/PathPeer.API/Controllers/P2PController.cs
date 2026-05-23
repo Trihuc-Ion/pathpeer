@@ -2,7 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PathPeer.Application.Features.P2P.DTOs;
-using PathPeer.Application.Features.Payments.DTOs;
+
 using PathPeer.Application.Interfaces.Repositories;
 using PathPeer.Domain.Entities;
 
@@ -62,7 +62,7 @@ public class P2PController : ControllerBase
             Id = transfer.Id,
             CourseId = course.Id,
             CourseTitle = course.Title,
-            SenderUsername = string.Empty,
+            SenderUsername = course.Creator.Username,
             ReceiverUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty,
             TransferredAt = transfer.TransferredAt
         });

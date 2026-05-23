@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using PathPeer.Application.Features.Users.DTOs;
 using PathPeer.Application.Interfaces.Repositories;
 using PathPeer.Application.Interfaces.Services;
@@ -9,11 +10,13 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IEmailService _emailService;
+    private readonly ILogger<UserService> _logger;
 
-    public UserService(IUserRepository userRepository, IEmailService emailService)
+    public UserService(IUserRepository userRepository, IEmailService emailService, ILogger<UserService> logger)
     {
         _userRepository = userRepository;
         _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<UserDto> UpdateProfileAsync(int userId, UpdateProfileDto dto)
@@ -69,6 +72,7 @@ public class UserService : IUserService
         user.TeacherApprovedAt = DateTime.UtcNow;
 
         await _userRepository.UpdateUserAsync(user);
+        _logger.LogInformation("Teacher aprobat: userId={UserId}, username={Username}", targetUserId, user.Username);
         await _emailService.SendTeacherApprovedAsync(user.Email, user.Username);
     }
 
@@ -83,6 +87,7 @@ public class UserService : IUserService
         user.TeacherStatus = TeacherStatus.Rejected;
 
         await _userRepository.UpdateUserAsync(user);
+        _logger.LogInformation("Teacher respins: userId={UserId}, username={Username}", targetUserId, user.Username);
         await _emailService.SendTeacherRejectedAsync(user.Email, user.Username);
     }
 }
