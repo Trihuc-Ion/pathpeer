@@ -3,12 +3,14 @@ using System.Text.Json.Serialization;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.OpenApi;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PathPeer.Application.Common;
 using PathPeer.API.Hubs;
 using PathPeer.Application.Features.Auth;
 using PathPeer.Application.Features.Courses.Services;
+using PathPeer.Application.Features.Payments;
 using PathPeer.Application.Features.Users;
 using PathPeer.Application.Interfaces.Repositories;
 using PathPeer.Application.Interfaces.Services;
@@ -37,7 +39,24 @@ builder.Services.AddControllers()
 
 //Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header
+    });
+    options.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("Bearer"),
+            new List<string>()
+        }
+    });
+});
 
 //DbContext (PostgreSQL)
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -136,6 +155,15 @@ builder.Services.AddScoped<ILessonBlockRepository, LessonBlockRepository>();
 
 builder.Services.AddScoped<ICourseVoteService, CourseVoteService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
+
+// Payments
+builder.Services.AddScoped<ILicenseRepository, LicenseRepository>();
+builder.Services.AddScoped<IP2PTransferRepository, P2PTransferRepository>();
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddScoped<IPaymentProvider, StripePaymentProvider>();
+builder.Services.AddScoped<IPaymentProvider, MaibPaymentProvider>();
+builder.Services.AddScoped<IPaymentProvider, PaynetPaymentProvider>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 var app = builder.Build();
 
